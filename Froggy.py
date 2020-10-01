@@ -24,7 +24,7 @@ async def on_message(message):
         if datetime.datetime.today().weekday() == 2:
             await message.channel.send('https://www.youtube.com/watch?v=OzQ-KvxLVT0')
         else:
-            await message.channel.send('Not yet ):')
+            await message.channel.send('Not yet my dude')
 
     if message.content.lower().find('ree') != -1:
         await message.channel.send('https://media1.tenor.com/images/329f4793998843d6b2eadafca89bf87c/tenor.gif')
@@ -42,7 +42,8 @@ async def status_task():
         if datetime.datetime.today().weekday() == 2:
             if is_wednesday is False:
                 is_wednesday = True
-                await client.get_channel(758316238744453160).send("https://www.youtube.com/watch?v=OzQ-KvxLVT0")
+                channel = client.get_channel(758316238744453160)
+                await channel.send("https://www.youtube.com/watch?v=OzQ-KvxLVT0")
         else:
             is_wednesday = False
         await asyncio.sleep(10)
