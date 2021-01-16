@@ -7,6 +7,7 @@ import datetime
 import os
 import random
 import googleapiclient.discovery
+import json
 from urllib.parse import parse_qs, urlparse
 
 client = discord.Client()
@@ -52,7 +53,7 @@ async def status_task():
         await asyncio.sleep(10)
         
 
-async def populate_playlist_items():
+def populate_playlist_items():
     youtube = googleapiclient.discovery.build("youtube", "v3", developerKey = APIKEY)
 
     request = youtube.playlistItems().list(
@@ -69,13 +70,14 @@ async def populate_playlist_items():
         request = youtube.playlistItems().list_next(request, response)
 
     print(f"total: {len(PLAYLISTITEMS)}")
+    return PLAYLISTITEMS
 
 
-TOKEN = input("DC_BOT_TOKEN not set, please provide: ")
-PLAYLIST = input("PLAYLIST_ID not set, please provide: ")
-APIKEY = input("YOUTUBE_v3_API_KEY not set, please provide: ")
-PLAYLISTITEMS = []
-populate_playlist_items()
+settings = json.load(open("settings.json"))
 
+TOKEN = settings["discord_token"]
+PLAYLIST = settings["yt_playlist"]
+APIKEY = settings["yt_api_key"]
+PLAYLISTITEMS = populate_playlist_items()
 
 client.run(TOKEN)
