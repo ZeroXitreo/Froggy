@@ -73,7 +73,7 @@ def populate_playlist_items():
     return PLAYLISTITEMS
 
 
-settings = json.load(open("settings.json"))
+settings = json.load(open("config.json"))
 
 TOKEN = settings["discord_token"]
 PLAYLIST = settings["yt_playlist"]
