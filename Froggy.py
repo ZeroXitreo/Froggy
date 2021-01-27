@@ -10,6 +10,7 @@ import googleapiclient.discovery
 import json
 from urllib.parse import parse_qs, urlparse
 
+
 client = discord.Client()
 
 
@@ -29,9 +30,6 @@ async def on_message(message):
             await message.channel.send(f'https://www.youtube.com/watch?v={random.choice(PLAYLISTITEMS)["snippet"]["resourceId"]["videoId"]}')
         else:
             await message.channel.send('Not yet my dude')
-
-    if message.content.lower().find('ree') != -1:
-        await message.channel.send('https://media1.tenor.com/images/329f4793998843d6b2eadafca89bf87c/tenor.gif')
 
     if message.content.lower().find('good bot') != -1:
         await message.channel.send('Thanks, you too, human')
@@ -73,11 +71,11 @@ def populate_playlist_items():
     return PLAYLISTITEMS
 
 
-settings = json.load(open("config.json"))
+config = json.load(open("config.json"))
 
-TOKEN = settings["discord_token"]
-PLAYLIST = settings["yt_playlist"]
-APIKEY = settings["yt_api_key"]
+TOKEN = config["discord_token"]
+PLAYLIST = config["yt_playlist"]
+APIKEY = config["yt_api_key"]
 PLAYLISTITEMS = populate_playlist_items()
 
 client.run(TOKEN)
