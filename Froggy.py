@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, urlparse
 
 
 client = discord.Client()
+is_wednesday = False
 
 
 @client.event
@@ -31,15 +32,8 @@ async def on_message(message):
         else:
             await message.channel.send('Not yet my dude')
 
-    if message.content.lower().find('good bot') != -1:
-        await message.channel.send('Thanks, you too, human')
-
-    if message.content.lower().find('bad bot') != -1:
-        await message.channel.send('You\'ve been added to the list.')
-
 
 async def status_task():
-    is_wednesday = False
     while True:
         if datetime.datetime.today().weekday() == 2:
             if is_wednesday is False:
