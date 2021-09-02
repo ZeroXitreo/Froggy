@@ -34,6 +34,7 @@ async def on_message(message):
 
 
 async def status_task():
+    is_wednesday = False
     while True:
         if datetime.datetime.today().weekday() == 2:
             if is_wednesday is False:
