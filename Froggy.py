@@ -1,6 +1,7 @@
 import asyncio
 
 import discord
+# from discord_slash import SlashCommand, SlashContext
 #from pytube import Playlist
 #from pyyoutube import Api
 import datetime
@@ -8,12 +9,20 @@ import os
 import random
 import googleapiclient.discovery
 import json
+import os.path
+from os import path
 from urllib.parse import parse_qs, urlparse
 
 
 client = discord.Client()
 is_wednesday = False
 
+# slash = SlashCommand(client)
+
+# @slash.slash(name="test")
+# async def test(ctx: SlashContext):
+#     embed = Embed(title="Embed Test")
+#     await ctx.send(embed=embed)
 
 @client.event
 async def on_ready():
@@ -26,24 +35,31 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.lower().find('wednesday') != -1:
-        if datetime.datetime.today().weekday() == 2:
-            await message.channel.send(f'https://www.youtube.com/watch?v={random.choice(PLAYLISTITEMS)["snippet"]["resourceId"]["videoId"]}')
-        else:
-            await message.channel.send('Not yet my dude')
+    if message.content.lower().startswith(".dizone"):
+        if message.channel.id not in serverchannels:
+            serverchannels.append(message.channel.id)
+            SaveServerChannels()
+        await message.channel.send('Gotcha.')
+
+    if message.content.lower().startswith(".notdiz"):
+        if message.channel.id in serverchannels:
+            serverchannels.remove(message.channel.id)
+            SaveServerChannels()
+        await message.channel.send('):')
 
 
 async def status_task():
     is_wednesday = False
     while True:
-        if datetime.datetime.today().weekday() == 2:
+        if datetime.datetime.today().weekday() == 1:
             if is_wednesday is False:
                 is_wednesday = True
-                channel = client.get_channel(758316238744453160)
-                await channel.send(f'https://www.youtube.com/watch?v={random.choice(PLAYLISTITEMS)["snippet"]["resourceId"]["videoId"]}')
+                for channelId in serverchannels:
+                    channel = client.get_channel(channelId)
+                    await channel.send(f'https://www.youtube.com/watch?v={random.choice(PLAYLISTITEMS)["snippet"]["resourceId"]["videoId"]}')
         else:
             is_wednesday = False
-        await asyncio.sleep(10)
+        await asyncio.sleep(60*60)
         
 
 def populate_playlist_items():
@@ -65,6 +81,11 @@ def populate_playlist_items():
     print(f"total: {len(PLAYLISTITEMS)}")
     return PLAYLISTITEMS
 
+def SaveServerChannels():
+    print(serverchannels)
+    with open("serverchannels.json", "w") as output:
+        json.dump(serverchannels, output)
+    pass
 
 config = json.load(open("config.json"))
 
@@ -72,5 +93,10 @@ TOKEN = config["discord_token"]
 PLAYLIST = config["yt_playlist"]
 APIKEY = config["yt_api_key"]
 PLAYLISTITEMS = populate_playlist_items()
+
+serverchannels = []
+
+if path.exists("serverchannels.json"):
+    serverchannels = json.load(open("serverchannels.json"))
 
 client.run(TOKEN)
