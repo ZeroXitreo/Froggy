@@ -14,4 +14,4 @@ jobs:
     - uses: actions/checkout@v3
     - name: Checkout & Build docker
       working-directory: ./Froggy/Froggy
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      run: docker build . --tag my-image-name:$(date +%s)
