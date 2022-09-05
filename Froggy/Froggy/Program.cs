@@ -33,12 +33,12 @@ public class Program
 		_client.Ready += Ready;
 		_client.UserVoiceStateUpdated += UserVoiceStateUpdated;
 
-		var token = "Mzk0MjY5OTg0MzcwNzIwNzgz.Wj7miQ.PoYZggguGKnFU1I8SKKMqdItPs8";
-
 		// Some alternative options would be to keep your token in an Environment Variable or a standalone file.
 		// var token = File.ReadAllText("token.txt");
 		AppSettings? appSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText("appsettings.json"));
 		Console.WriteLine(appSettings?.DiscordToken);
+
+		var token = appSettings.DiscordToken;
 
 		await _client.LoginAsync(TokenType.Bot, token);
 		await _client.StartAsync();

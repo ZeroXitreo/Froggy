@@ -1,10 +1,10 @@
 {
-  "profiles": {
-    "Froggy": {
-      "commandName": "Project"
-    },
-    "Docker": {
-      "commandName": "Docker"
-    }
-  }
+	"profiles": {
+		"Froggy": {
+			"commandName": "Project"
+		},
+		"Docker": {
+			"commandName": "Docker"
+		}
+	}
 }
