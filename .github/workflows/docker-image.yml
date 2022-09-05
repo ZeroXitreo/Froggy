@@ -12,8 +12,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build the Docker image
+    - name: Checkout
+    
+    - name: Build docker
+    - working-directory: Froggy/Froggy
       run: |
         pwd
         ls
-        docker build Froggy/Froggy/. --file Froggy/Froggy/Dockerfile --tag my-image-name:$(date +%s)
+        docker build . --file Dockerfile --tag my-image-name:$(date +%s)
