@@ -6,3 +6,10 @@ To make this work correctly, you'll need to create a new file called config.json
 - discord_token
 - yt_playlist
 - yt_api_key
+
+Froggy\appsettings.json ->
+﻿{
+	"DiscordToken": "",
+	"YtPlaylist": "",
+	"YtApiKey": ""
+}
