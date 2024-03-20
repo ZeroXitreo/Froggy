@@ -16,58 +16,22 @@ public class Program
 
 	private IList<PlaylistItem> _playlist;
 
-	private static Random _random = new Random();
+	private static readonly Random _random = new();
+
+	private static readonly HttpClient httpClient = new() { BaseAddress = new Uri("https://inspirobot.me/") };
 
 	public async Task MainAsync()
 	{
 		appSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText("appsettings.json"));
 		await PopulatePlaylistAsync();
-		Console.WriteLine(_playlist.Count);
+
+
 
 		_client = new DiscordSocketClient();
-
-		_client.Log += Log;
-		_client.ChannelCreated += Womba;
 		_client.MessageReceived += MessageReceived;
-		_client.Ready += Ready;
-		_client.UserVoiceStateUpdated += UserVoiceStateUpdated;
-		_client.MessageReceived += Message;
-
-
-		var token = appSettings.DiscordToken;
-
-		await _client.LoginAsync(TokenType.Bot, token);
+		await _client.LoginAsync(TokenType.Bot, appSettings?.DiscordToken);
 		await _client.StartAsync();
-
 		await Task.Delay(-1);
-	}
-
-	private async Task UserVoiceStateUpdated(SocketUser User, SocketVoiceState Leaving, SocketVoiceState Joining)
-	{
-		if (Leaving.VoiceChannel is not null)
-		{
-			if (!Leaving.VoiceChannel.ConnectedUsers.Any())
-			{
-				await Leaving.VoiceChannel.Guild.CreateVoiceChannelAsync(Leaving.VoiceChannel.Name, tcp => tcp.CategoryId = Leaving.VoiceChannel.CategoryId);
-				await PurgeTextChannel(Leaving.VoiceChannel);
-			}
-		}
-	}
-
-	private async Task PurgeTextChannel(ITextChannel textChannel)
-	{
-		IEnumerable<IMessage> messages;
-		do
-		{
-			messages = await textChannel.GetMessagesAsync().FlattenAsync();
-			await textChannel.DeleteMessagesAsync(messages);
-		} while (messages.Any());
-	}
-
-	private async Task Ready()
-	{
-		IUser foo = await _client.GetUserAsync(66356975771852800);
-		//await foo.SendMessageAsync("Hoi!");
 	}
 
 	private async Task PopulatePlaylistAsync()
@@ -84,35 +48,34 @@ public class Program
 		_playlist = playlistResponse.Items;
 	}
 
-	private async Task MessageReceived(SocketMessage arg)
+	private async Task MessageReceived(SocketMessage message)
 	{
-		if (arg.Author == _client.CurrentUser) return;
+		if (message.Author == _client.CurrentUser) return;
 
-		if (arg.MentionedUsers.Any(o => o.Id == _client.CurrentUser.Id))
+		await Message(message);
+
+		if (message.MentionedUsers.Any(user => user.Id == _client.CurrentUser.Id))
 		{
 			if (DateTime.UtcNow.DayOfWeek == DayOfWeek.Wednesday)
 			{
-				//await arg.DeleteAsync();
-				await arg.Channel.SendMessageAsync($"https://youtu.be/{_playlist[_random.Next(0, _playlist.Count)].Snippet.ResourceId.VideoId}");
+				await message.Channel.SendMessageAsync($"https://youtu.be/{_playlist[_random.Next(0, _playlist.Count)].Snippet.ResourceId.VideoId}");
+			}
+			else
+			{
+				await message.Channel.SendMessageAsync($"Not wednesday, sorry <@{message.Author.Id}>");
 			}
 		}
 	}
 
-	private Task Womba(SocketChannel arg)
+	private async Task Message(SocketMessage message)
 	{
-		Console.WriteLine(arg);
-		return Task.CompletedTask;
-	}
-
-	private Task Log(LogMessage msg)
-	{
-		Console.WriteLine(msg.ToString());
-		return Task.CompletedTask;
-	}
-
-	private Task Message(SocketMessage msg)
-	{
-		Console.WriteLine(msg.ToString());
-		return Task.CompletedTask;
+		if (message.Content == "!inspireme")
+		{
+			await message.Channel.TriggerTypingAsync();
+			using HttpResponseMessage response = await httpClient.GetAsync("api?generate=true");
+			string responseBody = await response.Content.ReadAsStringAsync();
+			using HttpResponseMessage response2 = await httpClient.GetAsync(responseBody);
+			await message.Channel.SendFileAsync(response2.Content.ReadAsStream(), "inspiration.jpg");
+		}
 	}
 }
