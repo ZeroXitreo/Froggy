@@ -1,18 +1,16 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Froggy;
 using Google.Apis.Services;
-using Google.Apis.Util;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
-using System.Text.RegularExpressions;
-using System.Configuration;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Froggy;
 
 public class Program
 {
 	public static Task Main(string[] args) => new Program().MainAsync();
+
+	private AppSettings? appSettings;
 
 	private DiscordSocketClient _client;
 
@@ -22,6 +20,7 @@ public class Program
 
 	public async Task MainAsync()
 	{
+		appSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText("appsettings.json"));
 		await PopulatePlaylistAsync();
 		Console.WriteLine(_playlist.Count);
 
@@ -32,11 +31,8 @@ public class Program
 		_client.MessageReceived += MessageReceived;
 		_client.Ready += Ready;
 		_client.UserVoiceStateUpdated += UserVoiceStateUpdated;
+		_client.MessageReceived += Message;
 
-		// Some alternative options would be to keep your token in an Environment Variable or a standalone file.
-		// var token = File.ReadAllText("token.txt");
-		AppSettings? appSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText("appsettings.json"));
-		Console.WriteLine(appSettings?.DiscordToken);
 
 		var token = appSettings.DiscordToken;
 
@@ -78,11 +74,11 @@ public class Program
 	{
 		YouTubeService service = new(new BaseClientService.Initializer()
 		{
-			ApiKey = "AIzaSyAR03av2wMZx3FtwdZ_ECj5Hp_4YwvJcYM",
+			ApiKey = appSettings?.YtApiKey,
 		});
 
 		PlaylistItemsResource.ListRequest playlistRequest = service.PlaylistItems.List("snippet");
-		playlistRequest.PlaylistId = "PLphs3AfjTweSmfJwgg-hQfJgA3HHmrY2i";
+		playlistRequest.PlaylistId = appSettings?.YtPlaylist;
 		playlistRequest.MaxResults = 50;
 		PlaylistItemListResponse playlistResponse = await playlistRequest.ExecuteAsync();
 		_playlist = playlistResponse.Items;
@@ -109,6 +105,12 @@ public class Program
 	}
 
 	private Task Log(LogMessage msg)
+	{
+		Console.WriteLine(msg.ToString());
+		return Task.CompletedTask;
+	}
+
+	private Task Message(SocketMessage msg)
 	{
 		Console.WriteLine(msg.ToString());
 		return Task.CompletedTask;

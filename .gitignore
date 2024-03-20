@@ -528,3 +528,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+Froggy/appsettings.json
