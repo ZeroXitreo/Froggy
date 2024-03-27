@@ -12,7 +12,7 @@ public class Program
 
 	private AppSettings? appSettings;
 
-	private DiscordSocketClient _client = default!;
+	private DiscordSocketClient client = default!;
 
 	private IList<PlaylistItem> playlist = [];
 
@@ -25,10 +25,10 @@ public class Program
 		appSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText("appsettings.json"));
 		await PopulatePlaylistAsync();
 
-		_client = new DiscordSocketClient();
-		_client.MessageReceived += MessageReceived;
-		await _client.LoginAsync(TokenType.Bot, appSettings?.DiscordToken);
-		await _client.StartAsync();
+		client = new DiscordSocketClient();
+		client.MessageReceived += MessageReceived;
+		await client.LoginAsync(TokenType.Bot, appSettings?.DiscordToken);
+		await client.StartAsync();
 		await Task.Delay(-1);
 	}
 
@@ -48,11 +48,11 @@ public class Program
 
 	private async Task MessageReceived(SocketMessage message)
 	{
-		if (message.Author == _client.CurrentUser) return;
+		if (message.Author == client.CurrentUser) return;
 
 		await Message(message);
 
-		if (message.MentionedUsers.Any(user => user.Id == _client.CurrentUser.Id))
+		if (message.MentionedUsers.Any(user => user.Id == client.CurrentUser.Id))
 		{
 			if (DateTime.UtcNow.DayOfWeek == DayOfWeek.Wednesday)
 			{
