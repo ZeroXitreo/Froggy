@@ -8,13 +8,13 @@ using Newtonsoft.Json;
 
 public class Program
 {
-	public static Task Main(string[] args) => new Program().MainAsync();
+	public static Task Main() => new Program().MainAsync();
 
 	private AppSettings? appSettings;
 
-	private DiscordSocketClient _client;
+	private DiscordSocketClient _client = default!;
 
-	private IList<PlaylistItem> _playlist;
+	private IList<PlaylistItem> playlist = [];
 
 	private static readonly Random _random = new();
 
@@ -24,8 +24,6 @@ public class Program
 	{
 		appSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText("appsettings.json"));
 		await PopulatePlaylistAsync();
-
-
 
 		_client = new DiscordSocketClient();
 		_client.MessageReceived += MessageReceived;
@@ -45,7 +43,7 @@ public class Program
 		playlistRequest.PlaylistId = appSettings?.YtPlaylist;
 		playlistRequest.MaxResults = 50;
 		PlaylistItemListResponse playlistResponse = await playlistRequest.ExecuteAsync();
-		_playlist = playlistResponse.Items;
+		playlist = playlistResponse.Items;
 	}
 
 	private async Task MessageReceived(SocketMessage message)
@@ -58,7 +56,7 @@ public class Program
 		{
 			if (DateTime.UtcNow.DayOfWeek == DayOfWeek.Wednesday)
 			{
-				await message.Channel.SendMessageAsync($"https://youtu.be/{_playlist[_random.Next(0, _playlist.Count)].Snippet.ResourceId.VideoId}");
+				await message.Channel.SendMessageAsync($"https://youtu.be/{playlist[_random.Next(0, playlist.Count)].Snippet.ResourceId.VideoId}");
 			}
 			else
 			{
