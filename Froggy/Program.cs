@@ -12,7 +12,7 @@ public class Program
 
 	private AppSettings? appSettings;
 
-	private DiscordSocketClient client = default!;
+	private readonly DiscordSocketClient client = new();
 
 	private IList<PlaylistItem> playlist = [];
 
@@ -25,7 +25,6 @@ public class Program
 		appSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText("appsettings.json"));
 		await PopulatePlaylistAsync();
 
-		client = new DiscordSocketClient();
 		client.MessageReceived += MessageReceived;
 		await client.LoginAsync(TokenType.Bot, appSettings?.DiscordToken);
 		await client.StartAsync();
