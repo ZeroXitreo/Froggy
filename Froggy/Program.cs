@@ -12,7 +12,12 @@ public class Program
 
 	private AppSettings? appSettings;
 
-	private readonly DiscordSocketClient client = new();
+	private static readonly DiscordSocketConfig config = new()
+	{
+		GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+	};
+
+	private readonly DiscordSocketClient client = new(config);
 
 	private IList<PlaylistItem> playlist = [];
 
