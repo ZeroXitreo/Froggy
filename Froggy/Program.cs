@@ -16,7 +16,7 @@ public class Program
 
 	private IList<PlaylistItem> playlist = [];
 
-	private static readonly Random _random = new();
+	private static readonly Random random = new();
 
 	private static readonly HttpClient httpClient = new() { BaseAddress = new Uri("https://inspirobot.me/") };
 
@@ -48,6 +48,7 @@ public class Program
 	private async Task MessageReceived(SocketMessage message)
 	{
 		Console.WriteLine(message.Content);
+		Console.WriteLine(message.ToString());
 		if (message.Author == client.CurrentUser) return;
 
 		await Message(message);
@@ -56,7 +57,7 @@ public class Program
 		{
 			if (DateTime.UtcNow.DayOfWeek == DayOfWeek.Wednesday)
 			{
-				await message.Channel.SendMessageAsync($"https://youtu.be/{playlist[_random.Next(0, playlist.Count)].Snippet.ResourceId.VideoId}");
+				await message.Channel.SendMessageAsync($"https://youtu.be/{playlist[random.Next(0, playlist.Count)].Snippet.ResourceId.VideoId}");
 			}
 			else
 			{
