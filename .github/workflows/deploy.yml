@@ -43,4 +43,4 @@ jobs:
           docker load -i ${{ vars.IMAGE_NAME }}.tar
           rm ${{ vars.IMAGE_NAME }}.tar
           sh compose.sh up -d
-          docker system prune -af
+#          docker system prune -af
