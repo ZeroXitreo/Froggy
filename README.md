@@ -8,8 +8,10 @@ To make this work correctly, you'll need to create a new file called config.json
 - yt_api_key
 
 Froggy\appsettings.json ->
+```
 ﻿{
 	"DiscordToken": "",
 	"YtPlaylist": "",
 	"YtApiKey": ""
 }
+```
