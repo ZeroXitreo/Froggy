@@ -47,6 +47,7 @@ public class Program
 
 	private async Task MessageReceived(SocketMessage message)
 	{
+		Console.WriteLine(message.Content);
 		if (message.Author == client.CurrentUser) return;
 
 		await Message(message);
