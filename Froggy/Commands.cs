@@ -11,9 +11,10 @@ public class Commands : InteractionModuleBase
 	[SlashCommand("inspire", "Get an inspirational quote")]
 	public async Task Inspire()
 	{
+		await DeferAsync();
 		using HttpResponseMessage response = await httpClient.GetAsync("api?generate=true");
 		string responseBody = await response.Content.ReadAsStringAsync();
 		using HttpResponseMessage response2 = await httpClient.GetAsync(responseBody);
-		await RespondWithFileAsync(response2.Content.ReadAsStream(), "inspiration.jpg");
+		await FollowupWithFileAsync(response2.Content.ReadAsStream(), "inspiration.jpg");
 	}
 }
