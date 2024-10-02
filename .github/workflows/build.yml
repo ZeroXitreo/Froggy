@@ -1,0 +1,25 @@
+name: Build branch
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*'
+      - '!.github/workflows/*'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+        
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+        
+    - name: Build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        tags: ${{ vars.IMAGE_NAME }}:latest
+        outputs: type=docker,dest=./${{ vars.IMAGE_NAME }}.tar
