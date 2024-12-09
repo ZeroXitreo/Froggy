@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="3.16.0" />
-    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.68.0.3556" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.68.0.3617" />
   </ItemGroup>
 
   <ItemGroup>
