@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="3.16.0" />
+    <PackageReference Include="Discord.Net" Version="3.17.0" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.68.0.3556" />
   </ItemGroup>
 
