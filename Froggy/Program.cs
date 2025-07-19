@@ -1,81 +1,51 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using Froggy;
-using Google.Apis.Services;
-using Google.Apis.YouTube.v3;
-using Google.Apis.YouTube.v3.Data;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using System.Reflection;
+
+namespace Froggy;
 
 public class Program
 {
-	public static Task Main() => new Program().MainAsync();
+    private static readonly AppSettings appSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText("appsettings.json"))!;
 
-	private readonly AppSettings appSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText("appsettings.json"))!;
+    private static IServiceProvider CreateProvider()
+    {
+        var services = new ServiceCollection();
 
-	private readonly DiscordSocketClient client = new(new()
-	{
-		GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
-	});
+        services.AddSingleton(appSettings);
 
-	private IList<PlaylistItem> playlist = [];
+        services
+            .AddSingleton(new DiscordSocketConfig
+            {
+                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+            })
+            .AddSingleton<DiscordSocketClient>()
+            .AddSingleton(sp => new InteractionService(sp.GetRequiredService<DiscordSocketClient>()))
+            .AddSingleton<PlaylistService>()
+            .AddSingleton<InteractionHandler>();
 
-	private static readonly Random random = new();
+        return services.BuildServiceProvider();
+    }
 
-	public async Task MainAsync()
-	{
-		await PopulatePlaylistAsync();
+    static async Task Main(string[] args)
+    {
+        var services = CreateProvider();
 
-		client.MessageReceived += MessageReceived;
-		client.Ready += Ready;
-		await client.LoginAsync(TokenType.Bot, appSettings.DiscordToken);
-		await client.StartAsync();
-		await Task.Delay(-1);
-	}
+        var client = services.GetRequiredService<DiscordSocketClient>();
 
-	private async Task Ready()
-	{
-		InteractionService interactionService = new(client);
-		await interactionService.AddModulesAsync(Assembly.GetEntryAssembly(), null);
-		await interactionService.RegisterCommandsGloballyAsync();
+        await services.GetRequiredService<InteractionHandler>().InitializeAsync();
 
-		client.InteractionCreated += async interaction =>
-		{
-			var ctx = new SocketInteractionContext(client, interaction);
-			await interactionService.ExecuteCommandAsync(ctx, null);
-		};
-	}
+        client.Log += async (msg) =>
+        {
+            await Task.CompletedTask;
+            Console.WriteLine(msg);
+        };
 
-	private async Task PopulatePlaylistAsync()
-	{
-		YouTubeService service = new(new BaseClientService.Initializer()
-		{
-			ApiKey = appSettings.YtApiKey,
-		});
+        await client.LoginAsync(TokenType.Bot, appSettings.DiscordToken);
+        await client.StartAsync();
 
-		PlaylistItemsResource.ListRequest playlistRequest = service.PlaylistItems.List("snippet");
-		playlistRequest.PlaylistId = appSettings.YtPlaylist;
-		playlistRequest.MaxResults = 50;
-		PlaylistItemListResponse playlistResponse = await playlistRequest.ExecuteAsync();
-		playlist = playlistResponse.Items;
-	}
-
-	private async Task MessageReceived(SocketMessage message)
-	{
-		Console.WriteLine(message.Content);
-		if (message.Author == client.CurrentUser) return;
-
-		if (message.Content.Contains($"<@{client.CurrentUser.Id}>"))
-		{
-			if (DateTime.UtcNow.DayOfWeek == DayOfWeek.Wednesday)
-			{
-				await message.Channel.SendMessageAsync($"https://youtu.be/{playlist[random.Next(0, playlist.Count)].Snippet.ResourceId.VideoId}");
-			}
-			else
-			{
-				await message.Channel.SendMessageAsync($"Not wednesday, sorry <@{message.Author.Id}>");
-			}
-		}
-	}
+        await Task.Delay(Timeout.Infinite);
+    }
 }
