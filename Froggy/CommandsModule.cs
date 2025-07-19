@@ -26,17 +26,17 @@ public class CommandsModule(PlaylistService playlistService) : InteractionModule
     [SlashCommand("wednesday", "Is it wednesday yet?")]
     public async Task Wednesday()
     {
-        Console.WriteLine($"{Context.User.Username} used {nameof(Inspire)}");
-        await DeferAsync();
+        Console.WriteLine($"{Context.User.Username} used {nameof(Wednesday)}");
 
         if (DateTime.UtcNow.DayOfWeek == DayOfWeek.Wednesday)
         {
+            await DeferAsync();
             var playlist = await playlistService.GetPlaylist();
             await FollowupAsync($"https://youtu.be/{playlist[random.Next(0, playlist.Count)].Snippet.ResourceId.VideoId}");
         }
         else
         {
-            await FollowupAsync($"Not wednesday, sorry <@{Context.User.Id}>", ephemeral: true);
+            await RespondAsync($"Not wednesday, sorry <@{Context.User.Id}>", ephemeral: true);
         }
     }
 
