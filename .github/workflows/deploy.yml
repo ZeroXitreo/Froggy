@@ -1,45 +1,53 @@
 name: Deployer
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - '**/*'
-      - '!.github/workflows/*'
-      - '.github/workflows/deploy.yml'
+      - "**/*"
+      - "!.github/workflows/*"
+      - ".github/workflows/deploy.yml"
+      - ".github/workflows/build.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   build:
+    uses: ./.github/workflows/build.yml
+
+  deploy:
+    needs: build
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-        
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-        
-    - name: Build
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        tags: ${{ vars.IMAGE_NAME }}:latest
-        outputs: type=docker,dest=./${{ vars.IMAGE_NAME }}.tar
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ vars.IMAGE_NAME }}-image
+          path: .
+          pattern: ${{ vars.IMAGE_NAME }}.tar
 
-    - name: SCP into the server
-      uses: appleboy/scp-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        source: "./${{ vars.IMAGE_NAME }}.tar"
-        target: "~/"
-        
-    - name: Start deployment
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        script: |
-          docker load -i ${{ vars.IMAGE_NAME }}.tar
-          rm ${{ vars.IMAGE_NAME }}.tar
-          grim up
+      - name: Delete artifact
+        uses: geekyeggo/delete-artifact@v6
+        with:
+          name: ${{ vars.IMAGE_NAME }}-image
+
+      - name: SCP into the server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          source: "./${{ vars.IMAGE_NAME }}.tar"
+          target: "~/"
+
+      - name: Start deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          script: |
+            docker load -i ${{ vars.IMAGE_NAME }}.tar &&
+            rm ${{ vars.IMAGE_NAME }}.tar &&
+            grim up ${{ vars.IMAGE_NAME }} &&
+            docker system prune -af
